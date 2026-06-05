@@ -2,16 +2,17 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 const SLOTS=[
-  {start:'09:00',end:'09:30'},{start:'09:30',end:'10:00'},
-  {start:'10:00',end:'10:30'},{start:'10:30',end:'11:00'},
-  {start:'11:00',end:'11:30'},{start:'11:30',end:'12:00'},
-  {start:'12:00',end:'12:30'},{start:'12:30',end:'13:00'},
-  {start:'13:00',end:'13:30'},{start:'13:30',end:'14:00'},
-  {start:'14:00',end:'14:30'},{start:'14:30',end:'15:00'},
-  {start:'15:00',end:'15:30'},{start:'15:30',end:'16:00'},
-  {start:'16:00',end:'16:30'},{start:'16:30',end:'17:00'},
-  {start:'17:00',end:'17:30'},{start:'17:30',end:'18:00'},
-  {start:'18:00',end:'18:30'},{start:'18:30',end:'19:00'},
+  {start:'09:00',end:'09:50'},{start:'09:30',end:'10:20'},
+  {start:'10:00',end:'10:50'},{start:'10:30',end:'11:20'},
+  {start:'11:00',end:'11:50'},{start:'11:30',end:'12:20'},
+  {start:'12:00',end:'12:50'},{start:'12:30',end:'13:20'},
+  {start:'13:00',end:'13:50'},{start:'13:30',end:'14:20'},
+  {start:'14:00',end:'14:50'},{start:'14:30',end:'15:20'},
+  {start:'15:00',end:'15:50'},{start:'15:30',end:'16:20'},
+  {start:'16:00',end:'16:50'},{start:'16:30',end:'17:20'},
+  {start:'17:00',end:'17:50'},{start:'17:30',end:'18:20'},
+  {start:'18:00',end:'18:50'},{start:'18:30',end:'19:20'},
+  {start:'19:00',end:'19:50'},
 ];
 const DAYS=['日','月','火','水','木','金','土'];
 export default function BookingPage() {

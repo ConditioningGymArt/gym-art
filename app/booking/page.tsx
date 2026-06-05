@@ -1,11 +1,22 @@
 'use client';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-const TIMES=['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00'];
+const SLOTS=[
+  {start:'09:00',end:'09:30'},{start:'09:30',end:'10:00'},
+  {start:'10:00',end:'10:30'},{start:'10:30',end:'11:00'},
+  {start:'11:00',end:'11:30'},{start:'11:30',end:'12:00'},
+  {start:'12:00',end:'12:30'},{start:'12:30',end:'13:00'},
+  {start:'13:00',end:'13:30'},{start:'13:30',end:'14:00'},
+  {start:'14:00',end:'14:30'},{start:'14:30',end:'15:00'},
+  {start:'15:00',end:'15:30'},{start:'15:30',end:'16:00'},
+  {start:'16:00',end:'16:30'},{start:'16:30',end:'17:00'},
+  {start:'17:00',end:'17:30'},{start:'17:30',end:'18:00'},
+  {start:'18:00',end:'18:30'},{start:'18:30',end:'19:00'},
+];
 const DAYS=['日','月','火','水','木','金','土'];
 export default function BookingPage() {
   const [selectedDate,setSelectedDate]=useState<Date|null>(null);
-  const [selectedTime,setSelectedTime]=useState<string|null>(null);
+  const [selectedSlot,setSelectedSlot]=useState<{start:string,end:string}|null>(null);
   const [message,setMessage]=useState('');
   const [loading,setLoading]=useState(false);
   const today=new Date();
@@ -14,15 +25,16 @@ export default function BookingPage() {
   const firstDay=new Date(currentYear,currentMonth,1).getDay();
   const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
   const handleBook=async()=>{
-    if(!selectedDate||!selectedTime){setMessage('日付と時間を選んでください');return;}
+    if(!selectedDate||!selectedSlot){setMessage('日付と時間を選んでください');return;}
     setLoading(true);
     const start=new Date(selectedDate);
-    const[h,m]=selectedTime.split(':');
+    const[h,m]=selectedSlot.start.split(':');
     start.setHours(Number(h),Number(m),0,0);
-    const end=new Date(start);
-    end.setMinutes(end.getMinutes()+30);
+    const end=new Date(selectedDate);
+    const[eh,em]=selectedSlot.end.split(':');
+    end.setHours(Number(eh),Number(em),0,0);
     const{error}=await supabase.from('sessions').insert({start_time:start.toISOString(),end_time:end.toISOString(),status:'booked',session_type:'conditioning',booked_at:new Date().toISOString()});
-    if(error){setMessage('予約に失敗しました: '+error.message);}else{setMessage('予約完了しました！');setSelectedDate(null);setSelectedTime(null);}
+    if(error){setMessage('予約に失敗しました: '+error.message);}else{setMessage('予約完了しました！');setSelectedDate(null);setSelectedSlot(null);}
     setLoading(false);
   };
   return(
@@ -56,14 +68,14 @@ export default function BookingPage() {
           <div style={{background:'white',borderRadius:'16px',padding:'1.2rem',marginBottom:'1rem'}}>
             <p style={{fontSize:'0.8rem',color:'#8a8a9a',marginBottom:'0.8rem'}}>時間を選択</p>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem'}}>
-              {TIMES.map(t=>(<button key={t} onClick={()=>setSelectedTime(t)} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:'pointer',fontSize:'0.85rem',fontWeight:'600',background:selectedTime===t?'#0d1f3c':'#f2f2f0',color:selectedTime===t?'white':'#0d1f3c'}}>{t}〜{String(Number(t.split(':')[0])*60+Number(t.split(':')[1])+30).replace(/(\d+)(\d{2})/,'$1:$2').padStart(5,'0')}</button>))}
+              {SLOTS.map(s=>(<button key={s.start} onClick={()=>setSelectedSlot(s)} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:'pointer',fontSize:'0.85rem',fontWeight:'600',background:selectedSlot?.start===s.start?'#0d1f3c':'#f2f2f0',color:selectedSlot?.start===s.start?'white':'#0d1f3c'}}>{s.start}〜{s.end}</button>))}
             </div>
           </div>
         )}
-        {selectedDate&&selectedTime&&(
+        {selectedDate&&selectedSlot&&(
           <div style={{background:'#0d1f3c',borderRadius:'16px',padding:'1.2rem',marginBottom:'1rem'}}>
             <p style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.5)',marginBottom:'0.3rem'}}>予約内容</p>
-            <p style={{color:'white',fontWeight:'700',fontSize:'1rem'}}>{selectedDate.getMonth()+1}/{selectedDate.getDate()} {DAYS[selectedDate.getDay()]}曜日 {selectedTime}〜</p>
+            <p style={{color:'white',fontWeight:'700',fontSize:'1rem'}}>{selectedDate.getMonth()+1}/{selectedDate.getDate()} {DAYS[selectedDate.getDay()]}曜日 {selectedSlot.start}〜{selectedSlot.end}</p>
           </div>
         )}
         <button onClick={handleBook} disabled={loading} style={{width:'100%',padding:'1rem',borderRadius:'12px',border:'none',cursor:'pointer',background:'#b8975a',color:'white',fontWeight:'700',fontSize:'1rem'}}>{loading?'予約中...':'予約する'}</button>

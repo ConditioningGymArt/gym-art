@@ -7,50 +7,68 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [isTrainer, setIsTrainer] = useState(false);
 
   const handleLogin = async () => {
     setLoading(true);
     setMessage('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setMessage('ログインに失敗しました: ' + error.message);
+      setMessage('ログインに失敗しました');
     } else {
-      setMessage('ログイン成功！');
+      setLoggedIn(true);
+      setIsTrainer(email.includes('trainer') || email.includes('art'));
     }
     setLoading(false);
   };
 
-  return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="bg-gray-900 p-10 rounded-2xl shadow-xl w-full max-w-sm">
-        <h1 className="text-3xl font-bold text-white mb-2 text-center">Gym ART</h1>
-        <p className="text-gray-400 text-center mb-8 text-sm">コンディショニングジム</p>
-        <div className="space-y-4">
-          <input
-            type="email"
-            placeholder="メールアドレス"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-blue-500"
-          />
-          <input
-            type="password"
-            placeholder="パスワード"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-blue-500"
-          />
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-semibold rounded-lg transition"
-          >
-            {loading ? 'ログイン中...' : 'ログイン'}
+  if (loggedIn) {
+    return (
+      <main style={{minHeight:'100vh',background:'#f2f2f0'}}>
+        <div style={{background:'#0d1f3c',padding:'2rem 1.5rem',textAlign:'center'}}>
+          <div style={{fontFamily:'serif',fontSize:'1.8rem',color:'white',marginBottom:'0.3rem'}}>
+            Gym <span style={{color:'#b8975a',fontWeight:'700'}}>ART</span>
+          </div>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'0.8rem',letterSpacing:'0.2em'}}>CONDITIONING GYM</div>
+        </div>
+        <div style={{maxWidth:'400px',margin:'2rem auto',padding:'0 1.5rem',display:'flex',flexDirection:'column',gap:'1rem'}}>
+          <a href="/booking" style={{display:'block',background:'#b8975a',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem'}}>
+            📅 予約する
+          </a>
+          {isTrainer && (
+            <a href="/trainer" style={{display:'block',background:'#0d1f3c',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem'}}>
+              🏋️ 管理画面
+            </a>
+          )}
+          <button onClick={()=>{supabase.auth.signOut();setLoggedIn(false);}} style={{background:'none',border:'1px solid #d0d0d0',color:'#8a8a9a',padding:'0.8rem',borderRadius:'10px',cursor:'pointer',fontSize:'0.85rem'}}>
+            ログアウト
           </button>
         </div>
-        {message && (
-          <p className="mt-4 text-center text-sm text-yellow-400">{message}</p>
-        )}
+      </main>
+    );
+  }
+
+  return (
+    <main style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0d1f3c'}}>
+      <div style={{background:'rgba(255,255,255,0.05)',padding:'2.5rem',borderRadius:'20px',width:'100%',maxWidth:'360px',margin:'1rem'}}>
+        <div style={{textAlign:'center',marginBottom:'2rem'}}>
+          <div style={{fontFamily:'serif',fontSize:'2rem',color:'white',marginBottom:'0.3rem'}}>
+            Gym <span style={{color:'#b8975a',fontWeight:'700'}}>ART</span>
+          </div>
+          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'0.72rem',letterSpacing:'0.25em'}}>MEMBER PORTAL</div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'0.8rem'}}>
+          <input type="email" placeholder="メールアドレス" value={email} onChange={e=>setEmail(e.target.value)}
+            style={{padding:'0.9rem 1rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.07)',color:'white',fontSize:'0.9rem',outline:'none'}}/>
+          <input type="password" placeholder="パスワード" value={password} onChange={e=>setPassword(e.target.value)}
+            style={{padding:'0.9rem 1rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.07)',color:'white',fontSize:'0.9rem',outline:'none'}}/>
+          <button onClick={handleLogin} disabled={loading}
+            style={{padding:'0.9rem',borderRadius:'10px',border:'none',background:'#b8975a',color:'white',fontWeight:'700',fontSize:'0.95rem',cursor:'pointer',marginTop:'0.4rem'}}>
+            {loading?'ログイン中...':'ログイン'}
+          </button>
+        </div>
+        {message&&<p style={{marginTop:'1rem',textAlign:'center',color:'#e74c3c',fontSize:'0.82rem'}}>{message}</p>}
       </div>
     </main>
   );

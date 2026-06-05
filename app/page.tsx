@@ -1,9 +1,38 @@
+'use client';
+import { useState } from 'react';
+
 export default function Home() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   return (
-    <main style={{minHeight:'100vh',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{textAlign:'center',color:'white'}}>
-        <h1 style={{fontSize:'3rem',fontWeight:'300'}}>Gym <span style={{color:'#b8975a'}}>ART</span></h1>
-        <p style={{color:'rgba(255,255,255,0.5)',marginTop:'1rem'}}>MEMBER PORTAL</p>
+    <main style={{minHeight:'100vh',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'sans-serif'}}>
+      <div style={{textAlign:'center',color:'white',width:'100%',maxWidth:'400px',padding:'2rem'}}>
+        <h1 style={{fontSize:'2.5rem',fontWeight:'300',letterSpacing:'0.1em',marginBottom:'0.5rem'}}>
+          Gym <span style={{color:'#b8975a',fontWeight:'600'}}>ART</span>
+        </h1>
+        <p style={{color:'rgba(255,255,255,0.4)',fontSize:'0.75rem',letterSpacing:'0.3em',marginBottom:'3rem'}}>MEMBER PORTAL</p>
+        <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
+          <input
+            type='email'
+            placeholder='email address'
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{padding:'1rem',borderRadius:'8px',border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.08)',color:'white',fontSize:'1rem',outline:'none'}}
+          />
+          <input
+            type='password'
+            placeholder='password'
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{padding:'1rem',borderRadius:'8px',border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.08)',color:'white',fontSize:'1rem',outline:'none'}}
+          />
+          <button
+            style={{padding:'1rem',borderRadius:'8px',border:'none',background:'#b8975a',color:'#0d1f3c',fontSize:'1rem',fontWeight:'700',cursor:'pointer',letterSpacing:'0.1em',marginTop:'0.5rem'}}
+          >
+            LOGIN
+          </button>
+        </div>
       </div>
     </main>
   );

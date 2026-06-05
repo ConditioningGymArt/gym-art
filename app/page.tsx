@@ -1,11 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -18,32 +13,44 @@ export default function Home() {
     setMessage('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setMessage('ログインに失敗しました');
+      setMessage('ログインに失敗しました: ' + error.message);
     } else {
       setMessage('ログイン成功！');
-      window.location.href = '/dashboard';
     }
     setLoading(false);
   };
 
   return (
-    <main style={{minHeight:'100vh',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'sans-serif'}}>
-      <div style={{textAlign:'center',color:'white',width:'100%',maxWidth:'400px',padding:'2rem'}}>
-        <h1 style={{fontSize:'2.5rem',fontWeight:'300',letterSpacing:'0.1em',marginBottom:'0.5rem'}}>
-          Gym <span style={{color:'#b8975a',fontWeight:'600'}}>ART</span>
-        </h1>
-        <p style={{color:'rgba(255,255,255,0.4)',fontSize:'0.75rem',letterSpacing:'0.3em',marginBottom:'3rem'}}>MEMBER PORTAL</p>
-        <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-          <input type='email' placeholder='email address' value={email} onChange={e=>setEmail(e.target.value)}
-            style={{padding:'1rem',borderRadius:'8px',border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.08)',color:'white',fontSize:'1rem',outline:'none'}}/>
-          <input type='password' placeholder='password' value={password} onChange={e=>setPassword(e.target.value)}
-            style={{padding:'1rem',borderRadius:'8px',border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.08)',color:'white',fontSize:'1rem',outline:'none'}}/>
-          {message && <p style={{color:message.includes('成功')?'#3a9e6f':'#c0392b',fontSize:'0.85rem'}}>{message}</p>}
-          <button onClick={handleLogin} disabled={loading}
-            style={{padding:'1rem',borderRadius:'8px',border:'none',background:'#b8975a',color:'#0d1f3c',fontSize:'1rem',fontWeight:'700',cursor:'pointer',letterSpacing:'0.1em',marginTop:'0.5rem',opacity:loading?0.7:1}}>
-            {loading ? 'ログイン中...' : 'LOGIN'}
+    <main className="min-h-screen flex items-center justify-center bg-gray-950">
+      <div className="bg-gray-900 p-10 rounded-2xl shadow-xl w-full max-w-sm">
+        <h1 className="text-3xl font-bold text-white mb-2 text-center">Gym ART</h1>
+        <p className="text-gray-400 text-center mb-8 text-sm">コンディショニングジム</p>
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="メールアドレス"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-blue-500"
+          />
+          <input
+            type="password"
+            placeholder="パスワード"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={handleLogin}
+            disabled={loading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-semibold rounded-lg transition"
+          >
+            {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </div>
+        {message && (
+          <p className="mt-4 text-center text-sm text-yellow-400">{message}</p>
+        )}
       </div>
     </main>
   );

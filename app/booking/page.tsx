@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 const SLOTS=[
   {start:'09:00',end:'09:50'},{start:'09:30',end:'10:20'},
@@ -18,6 +18,7 @@ const DAYS=['日','月','火','水','木','金','土'];
 export default function BookingPage() {
   const [selectedDate,setSelectedDate]=useState<Date|null>(null);
   const [selectedSlot,setSelectedSlot]=useState<{start:string,end:string}|null>(null);
+  const [bookedSlots,setBookedSlots]=useState<string[]>([]);
   const [message,setMessage]=useState('');
   const [loading,setLoading]=useState(false);
   const today=new Date();
@@ -25,6 +26,21 @@ export default function BookingPage() {
   const [currentYear,setCurrentYear]=useState(today.getFullYear());
   const firstDay=new Date(currentYear,currentMonth,1).getDay();
   const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
+
+  const fetchBookedSlots=async(date:Date)=>{
+    const start=new Date(date);start.setHours(0,0,0,0);
+    const end=new Date(date);end.setHours(23,59,59,999);
+    const{data}=await supabase.from('sessions').select('start_time').eq('status','booked').gte('start_time',start.toISOString()).lte('start_time',end.toISOString());
+    setBookedSlots((data||[]).map(s=>{
+      const d=new Date(s.start_time);
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }));
+  };
+
+  useEffect(()=>{
+    if(selectedDate) fetchBookedSlots(selectedDate);
+  },[selectedDate]);
+
   const handleBook=async()=>{
     if(!selectedDate||!selectedSlot){setMessage('日付と時間を選んでください');return;}
     setLoading(true);
@@ -35,12 +51,14 @@ export default function BookingPage() {
     const[eh,em]=selectedSlot.end.split(':');
     end.setHours(Number(eh),Number(em),0,0);
     const{error}=await supabase.from('sessions').insert({start_time:start.toISOString(),end_time:end.toISOString(),status:'booked',session_type:'conditioning',booked_at:new Date().toISOString()});
-    if(error){setMessage('予約に失敗しました: '+error.message);}else{setMessage('予約完了しました！');setSelectedDate(null);setSelectedSlot(null);}
+    if(error){setMessage('予約に失敗しました: '+error.message);}else{setMessage('予約完了しました！');setSelectedDate(null);setSelectedSlot(null);setBookedSlots([]);}
     setLoading(false);
   };
+
   return(
     <main style={{minHeight:'100vh',background:'#f2f2f0'}}>
       <div style={{background:'#0d1f3c',padding:'1.2rem 1.5rem',display:'flex',alignItems:'center'}}>
+        <a href="/" style={{color:'rgba(255,255,255,0.6)',fontSize:'0.85rem',textDecoration:'none'}}>← ホーム</a>
         <span style={{color:'white',fontWeight:'700',fontSize:'1rem',margin:'0 auto'}}>予約する</span>
       </div>
       <div style={{maxWidth:'480px',margin:'0 auto',padding:'1.5rem'}}>
@@ -69,8 +87,12 @@ export default function BookingPage() {
           <div style={{background:'white',borderRadius:'16px',padding:'1.2rem',marginBottom:'1rem'}}>
             <p style={{fontSize:'0.8rem',color:'#8a8a9a',marginBottom:'0.8rem'}}>時間を選択</p>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem'}}>
-              {SLOTS.map(s=>(<button key={s.start} onClick={()=>setSelectedSlot(s)} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:'pointer',fontSize:'0.85rem',fontWeight:'600',background:selectedSlot?.start===s.start?'#0d1f3c':'#f2f2f0',color:selectedSlot?.start===s.start?'white':'#0d1f3c'}}>{s.start}〜{s.end}</button>))}
+              {SLOTS.map(s=>{
+                const isBooked=bookedSlots.includes(s.start);
+                return(<button key={s.start} onClick={()=>!isBooked&&setSelectedSlot(s)} disabled={isBooked} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:isBooked?'default':'pointer',fontSize:'0.85rem',fontWeight:'600',background:isBooked?'#f2f2f0':selectedSlot?.start===s.start?'#0d1f3c':'#f2f2f0',color:isBooked?'#ccc':selectedSlot?.start===s.start?'white':'#0d1f3c',textDecoration:isBooked?'line-through':'none'}}>{s.start}〜{s.end}</button>);
+              })}
             </div>
+            <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginTop:'0.8rem'}}>※ 取り消し線は予約済みです</p>
           </div>
         )}
         {selectedDate&&selectedSlot&&(

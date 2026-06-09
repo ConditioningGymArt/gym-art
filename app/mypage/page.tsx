@@ -24,7 +24,7 @@ export default function MyPage() {
         .from('sessions')
         .select('*')
         .eq('status', 'booked')
-        .order('start_time', { ascending: false });
+        .order('start_time', { ascending: true });
       setSessions(data || []);
       setLoading(false);
     };
@@ -57,7 +57,7 @@ export default function MyPage() {
   const isPast = (dateStr: string) => new Date(dateStr) < new Date();
 
   const upcomingSessions = sessions.filter(s => !isPast(s.start_time));
-  const pastSessions = sessions.filter(s => isPast(s.start_time));
+  const pastSessions = sessions.filter(s => isPast(s.start_time)).reverse();
 
   return (
     <main style={{minHeight:'100vh',background:'#f2f2f0'}}>

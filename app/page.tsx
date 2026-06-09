@@ -18,7 +18,7 @@ export default function Home() {
       setMessage('ログインに失敗しました');
     } else {
       setLoggedIn(true);
-      setIsTrainer(email.includes('trainer') || email.includes('art.'));
+      setIsTrainer(email.includes('trainer') || email.includes('art'));
     }
     setLoading(false);
   };

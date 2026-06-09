@@ -15,10 +15,13 @@ const SLOTS=[
   {start:'19:00',end:'19:50'},
 ];
 const DAYS=['日','月','火','水','木','金','土'];
+
+const toMinutes=(timeStr:string)=>Number(timeStr.split(':')[0])*60+Number(timeStr.split(':')[1]);
+
 export default function BookingPage() {
   const [selectedDate,setSelectedDate]=useState<Date|null>(null);
   const [selectedSlot,setSelectedSlot]=useState<{start:string,end:string}|null>(null);
-  const [bookedSlots,setBookedSlots]=useState<string[]>([]);
+  const [bookedSlots,setBookedSlots]=useState<{start:string,end:string}[]>([]);
   const [message,setMessage]=useState('');
   const [loading,setLoading]=useState(false);
   const today=new Date();
@@ -30,16 +33,30 @@ export default function BookingPage() {
   const fetchBookedSlots=async(date:Date)=>{
     const start=new Date(date);start.setHours(0,0,0,0);
     const end=new Date(date);end.setHours(23,59,59,999);
-    const{data}=await supabase.from('sessions').select('start_time').eq('status','booked').gte('start_time',start.toISOString()).lte('start_time',end.toISOString());
+    const{data}=await supabase.from('sessions').select('start_time,end_time').eq('status','booked').gte('start_time',start.toISOString()).lte('start_time',end.toISOString());
     setBookedSlots((data||[]).map(s=>{
-      const d=new Date(s.start_time);
-      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const sd=new Date(s.start_time);
+      const ed=new Date(s.end_time);
+      return {
+        start:`${String(sd.getHours()).padStart(2,'0')}:${String(sd.getMinutes()).padStart(2,'0')}`,
+        end:`${String(ed.getHours()).padStart(2,'0')}:${String(ed.getMinutes()).padStart(2,'0')}`,
+      };
     }));
   };
 
   useEffect(()=>{
     if(selectedDate) fetchBookedSlots(selectedDate);
   },[selectedDate]);
+
+  const isConflict=(slot:{start:string,end:string})=>{
+    const slotStart=toMinutes(slot.start);
+    const slotEnd=toMinutes(slot.end);
+    return bookedSlots.some(b=>{
+      const bStart=toMinutes(b.start);
+      const bEnd=toMinutes(b.end);
+      return slotStart < bEnd && slotEnd > bStart;
+    });
+  };
 
   const handleBook=async()=>{
     if(!selectedDate||!selectedSlot){setMessage('日付と時間を選んでください');return;}
@@ -88,11 +105,11 @@ export default function BookingPage() {
             <p style={{fontSize:'0.8rem',color:'#8a8a9a',marginBottom:'0.8rem'}}>時間を選択</p>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem'}}>
               {SLOTS.map(s=>{
-                const isBooked=bookedSlots.includes(s.start);
-                return(<button key={s.start} onClick={()=>!isBooked&&setSelectedSlot(s)} disabled={isBooked} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:isBooked?'default':'pointer',fontSize:'0.85rem',fontWeight:'600',background:isBooked?'#f2f2f0':selectedSlot?.start===s.start?'#0d1f3c':'#f2f2f0',color:isBooked?'#ccc':selectedSlot?.start===s.start?'white':'#0d1f3c',textDecoration:isBooked?'line-through':'none'}}>{s.start}〜{s.end}</button>);
+                const conflict=isConflict(s);
+                return(<button key={s.start} onClick={()=>!conflict&&setSelectedSlot(s)} disabled={conflict} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:conflict?'default':'pointer',fontSize:'0.85rem',fontWeight:'600',background:conflict?'#f2f2f0':selectedSlot?.start===s.start?'#0d1f3c':'#f2f2f0',color:conflict?'#ccc':selectedSlot?.start===s.start?'white':'#0d1f3c',textDecoration:conflict?'line-through':'none'}}>{s.start}〜{s.end}</button>);
               })}
             </div>
-            <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginTop:'0.8rem'}}>※ 取り消し線は予約済みです</p>
+            <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginTop:'0.8rem'}}>※ 取り消し線は予約不可です</p>
           </div>
         )}
         {selectedDate&&selectedSlot&&(

@@ -123,17 +123,24 @@ export default function TrainerPage() {
                 <div style={{fontSize:'0.68rem',color:'#8a8a9a'}}>{endH}:{endM}</div>
               </div>
               {session?(
-                <div style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:session.status==='booked'?'white':'rgba(184,151,90,0.08)',border:session.status==='booked'?'none':'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:session.status==='booked'?'white':session.status==='completed'?'rgba(58,158,111,0.06)':'rgba(184,151,90,0.08)',border:session.status==='booked'?'none':session.status==='completed'?'1px solid rgba(58,158,111,0.2)':'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                   {session.status==='booked'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
                         <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
                         <div>
                           <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
-                          <div style={{fontSize:'0.72rem',color:'#8a8a9a'}}>{session.session_type}</div>
                         </div>
                       </div>
-                      <span style={{fontSize:'0.68rem',background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.2rem 0.6rem',borderRadius:'100px',fontWeight:'700'}}>確定</span>
+                      <a href="/record" style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
+                    </>
+                  ):session.status==='completed'?(
+                    <>
+                      <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
+                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#3a9e6f',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
+                        <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
+                      </div>
+                      <span style={{fontSize:'0.68rem',background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.2rem 0.6rem',borderRadius:'100px',fontWeight:'700'}}>記録済み</span>
                     </>
                   ):(
                     <>

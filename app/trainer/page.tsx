@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 const DAYS=['日','月','火','水','木','金','土'];
 const SLOTS=['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00'];
 type Session={id:string;start_time:string;end_time:string;status:string;session_type:string;member_id:string|null;};
+type UserMap={[key:string]:string};
 export default function TrainerPage() {
   const [selectedDate,setSelectedDate]=useState(new Date());
   const [sessions,setSessions]=useState<Session[]>([]);
@@ -12,6 +13,7 @@ export default function TrainerPage() {
   const [showClosedModal,setShowClosedModal]=useState(false);
   const [closedInput,setClosedInput]=useState('');
   const [closedReason,setClosedReason]=useState('');
+  const [userMap,setUserMap]=useState<UserMap>({});
 
   const fetchSessions=async(date:Date)=>{
     setLoading(true);
@@ -22,12 +24,19 @@ export default function TrainerPage() {
     setLoading(false);
   };
 
+  const fetchUsers=async()=>{
+    const{data}=await supabase.from('users').select('id,full_name,email');
+    const map:UserMap={};
+    (data||[]).forEach(u=>{map[u.id]=u.full_name||u.email||'会員';});
+    setUserMap(map);
+  };
+
   const fetchClosedDays=async()=>{
     const{data}=await supabase.from('closed_days').select('closed_date');
     setClosedDays((data||[]).map(d=>d.closed_date));
   };
 
-  useEffect(()=>{fetchSessions(selectedDate);fetchClosedDays();},[selectedDate]);
+  useEffect(()=>{fetchSessions(selectedDate);fetchClosedDays();fetchUsers();},[selectedDate]);
 
   const changeDate=(diff:number)=>{
     const d=new Date(selectedDate);d.setDate(d.getDate()+diff);setSelectedDate(d);
@@ -55,7 +64,6 @@ export default function TrainerPage() {
 
   const todayDateStr=`${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
   const isClosed=closedDays.includes(todayDateStr);
-
   const bookedCount=sessions.filter(s=>s.status==='booked').length;
   const availableCount=sessions.filter(s=>s.status==='available').length;
 
@@ -63,6 +71,13 @@ export default function TrainerPage() {
     const t=new Date(s.start_time);
     return t.getHours()===Number(timeStr.split(':')[0])&&t.getMinutes()===Number(timeStr.split(':')[1]);
   });
+
+  const getMemberName=(memberId:string|null)=>{
+    if(!memberId)return '会員';
+    return userMap[memberId]||'会員';
+  };
+
+  const getInitial=(name:string)=>name.charAt(0)||'会';
 
   return(
     <main style={{minHeight:'100vh',background:'#f2f2f0'}}>
@@ -81,7 +96,6 @@ export default function TrainerPage() {
           ))}
         </div>
       </div>
-
       <div style={{background:'white',padding:'0.8rem 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #f2f2f0'}}>
         <button onClick={()=>changeDate(-1)} style={{background:'none',border:'none',fontSize:'1.2rem',cursor:'pointer',color:'#0d1f3c'}}>‹</button>
         <div style={{textAlign:'center'}}>
@@ -90,14 +104,12 @@ export default function TrainerPage() {
         </div>
         <button onClick={()=>changeDate(1)} style={{background:'none',border:'none',fontSize:'1.2rem',cursor:'pointer',color:'#0d1f3c'}}>›</button>
       </div>
-
       {isClosed&&(
         <div style={{background:'rgba(192,57,43,0.08)',padding:'1rem 1.5rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <span style={{color:'#c0392b',fontSize:'0.85rem',fontWeight:'600'}}>この日は休業日に設定されています</span>
           <button onClick={()=>removeClosedDay(todayDateStr)} style={{background:'#c0392b',color:'white',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>解除する</button>
         </div>
       )}
-
       <div style={{maxWidth:'600px',margin:'0 auto',padding:'1rem'}}>
         {loading&&<p style={{textAlign:'center',color:'#8a8a9a',padding:'2rem'}}>読み込み中...</p>}
         {!isClosed&&SLOTS.map(timeStr=>{
@@ -115,9 +127,9 @@ export default function TrainerPage() {
                   {session.status==='booked'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
-                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>会</div>
+                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
                         <div>
-                          <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>予約済み</div>
+                          <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
                           <div style={{fontSize:'0.72rem',color:'#8a8a9a'}}>{session.session_type}</div>
                         </div>
                       </div>
@@ -140,7 +152,6 @@ export default function TrainerPage() {
           );
         })}
       </div>
-
       {showClosedModal&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}}>
           <div style={{background:'white',borderRadius:'16px',padding:'2rem',width:'90%',maxWidth:'400px'}}>
@@ -148,13 +159,11 @@ export default function TrainerPage() {
             <div style={{display:'flex',flexDirection:'column',gap:'0.8rem'}}>
               <div>
                 <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>日付</p>
-                <input type="date" value={closedInput} onChange={e=>setClosedInput(e.target.value)}
-                  style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none'}}/>
+                <input type="date" value={closedInput} onChange={e=>setClosedInput(e.target.value)} style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none'}}/>
               </div>
               <div>
                 <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>理由（任意）</p>
-                <input type="text" placeholder="例：研修のため" value={closedReason} onChange={e=>setClosedReason(e.target.value)}
-                  style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none'}}/>
+                <input type="text" placeholder="例：研修のため" value={closedReason} onChange={e=>setClosedReason(e.target.value)} style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none'}}/>
               </div>
               <div style={{display:'flex',gap:'0.8rem',marginTop:'0.5rem'}}>
                 <button onClick={()=>setShowClosedModal(false)} style={{flex:1,padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',background:'white',cursor:'pointer',fontSize:'0.9rem'}}>キャンセル</button>

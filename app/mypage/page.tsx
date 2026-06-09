@@ -13,7 +13,6 @@ type Session = {
 export default function MyPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState('');
 
   const DAYS = ['日','月','火','水','木','金','土'];
 
@@ -21,7 +20,6 @@ export default function MyPage() {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { window.location.href = '/'; return; }
-      setUserEmail(user.email || '');
       const { data } = await supabase
         .from('sessions')
         .select('*')
@@ -70,7 +68,6 @@ export default function MyPage() {
                       <div>
                         <div style={{fontWeight:'700',color:'#0d1f3c',fontSize:'0.95rem'}}>{formatDate(s.start_time)}</div>
                         <div style={{color:'#8a8a9a',fontSize:'0.82rem',marginTop:'0.2rem'}}>{formatTime(s.start_time)} 〜 {formatTime(s.end_time)}</div>
-                        <div style={{color:'#8a8a9a',fontSize:'0.75rem',marginTop:'0.2rem'}}>{s.session_type}</div>
                       </div>
                       <span style={{background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.3rem 0.8rem',borderRadius:'100px',fontSize:'0.72rem',fontWeight:'700'}}>確定</span>
                     </div>

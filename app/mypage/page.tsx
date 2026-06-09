@@ -7,12 +7,22 @@ type Session = {
   start_time: string;
   end_time: string;
   status: string;
+  notes: string | null;
+};
+
+type Record = {
+  id: string;
+  session_id: string;
+  trainer_comment: string;
+  recorded_at: string;
 };
 
 export default function MyPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [records, setRecords] = useState<Record[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string|null>(null);
+  const [activeTab, setActiveTab] = useState<'booking'|'record'>('booking');
 
   const DAYS = ['日','月','火','水','木','金','土'];
 
@@ -20,12 +30,21 @@ export default function MyPage() {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { window.location.href = '/'; return; }
-      const { data } = await supabase
+
+      const { data: sessionData } = await supabase
         .from('sessions')
         .select('*')
-        .eq('status', 'booked')
+        .in('status', ['booked', 'completed'])
         .order('start_time', { ascending: true });
-      setSessions(data || []);
+      setSessions(sessionData || []);
+
+      const { data: recordData } = await supabase
+        .from('conditioning_scores')
+        .select('*')
+        .eq('member_id', user.id)
+        .order('recorded_at', { ascending: false });
+      setRecords(recordData || []);
+
       setLoading(false);
     };
     fetchData();
@@ -34,13 +53,8 @@ export default function MyPage() {
   const handleCancel = async (id: string) => {
     if (!confirm('この予約をキャンセルしますか？')) return;
     setCancelling(id);
-    const { error } = await supabase
-      .from('sessions')
-      .update({ status: 'cancelled' })
-      .eq('id', id);
-    if (!error) {
-      setSessions(prev => prev.filter(s => s.id !== id));
-    }
+    const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('id', id);
+    if (!error) setSessions(prev => prev.filter(s => s.id !== id));
     setCancelling(null);
   };
 
@@ -55,22 +69,28 @@ export default function MyPage() {
   };
 
   const isPast = (dateStr: string) => new Date(dateStr) < new Date();
+  const upcomingSessions = sessions.filter(s => s.status==='booked' && !isPast(s.start_time));
+  const pastSessions = sessions.filter(s => s.status==='booked' && isPast(s.start_time)).reverse();
 
-  const upcomingSessions = sessions.filter(s => !isPast(s.start_time));
-  const pastSessions = sessions.filter(s => isPast(s.start_time)).reverse();
+  const getRecord = (sessionId: string) => records.find(r => r.session_id === sessionId);
 
   return (
     <main style={{minHeight:'100vh',background:'#f2f2f0'}}>
       <div style={{background:'#0d1f3c',padding:'1.2rem 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <a href="/" style={{color:'rgba(255,255,255,0.6)',fontSize:'0.85rem',textDecoration:'none'}}>← ホーム</a>
-        <span style={{color:'white',fontWeight:'700',fontSize:'1rem'}}>予約履歴</span>
+        <span style={{color:'white',fontWeight:'700',fontSize:'1rem'}}>マイページ</span>
         <span style={{width:'60px'}}></span>
+      </div>
+
+      <div style={{display:'flex',background:'white',borderBottom:'1px solid #f2f2f0'}}>
+        <button onClick={()=>setActiveTab('booking')} style={{flex:1,padding:'0.9rem',border:'none',background:'none',cursor:'pointer',fontSize:'0.85rem',fontWeight:'700',color:activeTab==='booking'?'#0d1f3c':'#8a8a9a',borderBottom:activeTab==='booking'?'2px solid #0d1f3c':'2px solid transparent'}}>予約履歴</button>
+        <button onClick={()=>setActiveTab('record')} style={{flex:1,padding:'0.9rem',border:'none',background:'none',cursor:'pointer',fontSize:'0.85rem',fontWeight:'700',color:activeTab==='record'?'#0d1f3c':'#8a8a9a',borderBottom:activeTab==='record'?'2px solid #0d1f3c':'2px solid transparent'}}>カルテ</button>
       </div>
 
       <div style={{maxWidth:'480px',margin:'0 auto',padding:'1.5rem'}}>
         {loading ? (
           <p style={{textAlign:'center',color:'#8a8a9a',padding:'2rem'}}>読み込み中...</p>
-        ) : (
+        ) : activeTab==='booking' ? (
           <>
             {upcomingSessions.length > 0 && (
               <div style={{marginBottom:'2rem'}}>
@@ -82,11 +102,8 @@ export default function MyPage() {
                         <div style={{fontWeight:'700',color:'#0d1f3c',fontSize:'0.95rem'}}>{formatDate(s.start_time)}</div>
                         <div style={{color:'#8a8a9a',fontSize:'0.82rem',marginTop:'0.2rem'}}>{formatTime(s.start_time)} 〜 {formatTime(s.end_time)}</div>
                       </div>
-                      <button
-                        onClick={() => handleCancel(s.id)}
-                        disabled={cancelling === s.id}
-                        style={{background:'rgba(192,57,43,0.08)',color:'#c0392b',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',fontWeight:'700',cursor:'pointer'}}
-                      >
+                      <button onClick={() => handleCancel(s.id)} disabled={cancelling === s.id}
+                        style={{background:'rgba(192,57,43,0.08)',color:'#c0392b',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',fontWeight:'700',cursor:'pointer'}}>
                         {cancelling === s.id ? '処理中...' : 'キャンセル'}
                       </button>
                     </div>
@@ -94,7 +111,6 @@ export default function MyPage() {
                 ))}
               </div>
             )}
-
             {upcomingSessions.length === 0 && (
               <div style={{background:'white',borderRadius:'14px',padding:'2rem',textAlign:'center',marginBottom:'2rem'}}>
                 <div style={{fontSize:'2rem',marginBottom:'0.5rem'}}>📅</div>
@@ -102,7 +118,6 @@ export default function MyPage() {
                 <a href="/booking" style={{display:'inline-block',marginTop:'1rem',background:'#b8975a',color:'white',padding:'0.7rem 1.5rem',borderRadius:'10px',textDecoration:'none',fontSize:'0.85rem',fontWeight:'700'}}>予約する</a>
               </div>
             )}
-
             {pastSessions.length > 0 && (
               <div>
                 <p style={{fontSize:'0.75rem',letterSpacing:'0.15em',color:'#8a8a9a',marginBottom:'0.8rem'}}>過去の予約</p>
@@ -119,6 +134,35 @@ export default function MyPage() {
                 ))}
               </div>
             )}
+          </>
+        ) : (
+          <>
+            {records.length === 0 && (
+              <div style={{background:'white',borderRadius:'14px',padding:'2rem',textAlign:'center'}}>
+                <div style={{fontSize:'2rem',marginBottom:'0.5rem'}}>📋</div>
+                <div style={{color:'#8a8a9a',fontSize:'0.85rem'}}>まだカルテがありません</div>
+              </div>
+            )}
+            {records.map(r => {
+              const session = sessions.find(s => s.id === r.session_id);
+              return (
+                <div key={r.id} style={{background:'white',borderRadius:'14px',padding:'1.2rem',marginBottom:'1rem',borderLeft:'4px solid #0d1f3c'}}>
+                  <div style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.8rem'}}>
+                    {session ? formatDate(session.start_time) : formatDate(r.recorded_at)}
+                  </div>
+                  <div style={{marginBottom:'0.8rem'}}>
+                    <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>実施内容</p>
+                    <p style={{fontSize:'0.9rem',color:'#0d1f3c',lineHeight:'1.6'}}>{r.trainer_comment}</p>
+                  </div>
+                  {session?.notes && (
+                    <div style={{background:'rgba(184,151,90,0.08)',borderRadius:'8px',padding:'0.8rem',marginTop:'0.5rem'}}>
+                      <p style={{fontSize:'0.72rem',color:'#b8975a',fontWeight:'700',marginBottom:'0.3rem'}}>🏠 ホームエクササイズ</p>
+                      <p style={{fontSize:'0.85rem',color:'#0d1f3c',lineHeight:'1.6'}}>{session.notes}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </>
         )}
       </div>

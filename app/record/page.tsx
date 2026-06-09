@@ -17,6 +17,10 @@ export default function RecordPage() {
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [content, setContent] = useState('');
   const [homeExercise, setHomeExercise] = useState('');
+  const [weight, setWeight] = useState('');
+  const [bodyFat, setBodyFat] = useState('');
+  const [waterContent, setWaterContent] = useState('');
+  const [showMeasurement, setShowMeasurement] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -63,22 +67,36 @@ export default function RecordPage() {
     if (!selectedSession) { setMessage('セッションを選んでください'); return; }
     if (!content) { setMessage('実施内容を入力してください'); return; }
     setLoading(true);
-    const { error } = await supabase.from('conditioning_scores').insert({
+
+    const { error: scoreError } = await supabase.from('conditioning_scores').insert({
       session_id: selectedSession.id,
       member_id: selectedSession.member_id,
       trainer_comment: content,
       recorded_at: new Date().toISOString(),
     });
-    if (error) {
-      setMessage('保存に失敗しました: ' + error.message);
-    } else {
-      await supabase.from('sessions').update({ status: 'completed', notes: homeExercise }).eq('id', selectedSession.id);
-      setMessage('記録を保存しました！');
-      setSelectedSession(null);
-      setContent('');
-      setHomeExercise('');
-      setSessions(prev => prev.filter(s => s.id !== selectedSession.id));
+
+    if (scoreError) { setMessage('保存に失敗しました: ' + scoreError.message); setLoading(false); return; }
+
+    if (weight || bodyFat || waterContent) {
+      await supabase.from('body_measurements').insert({
+        member_id: selectedSession.member_id,
+        weight: weight ? Number(weight) : null,
+        body_fat: bodyFat ? Number(bodyFat) : null,
+        water_content: waterContent ? Number(waterContent) : null,
+        measured_at: new Date().toISOString(),
+      });
     }
+
+    await supabase.from('sessions').update({ status: 'completed', notes: homeExercise }).eq('id', selectedSession.id);
+    setMessage('記録を保存しました！');
+    setSelectedSession(null);
+    setContent('');
+    setHomeExercise('');
+    setWeight('');
+    setBodyFat('');
+    setWaterContent('');
+    setShowMeasurement(false);
+    setSessions(prev => prev.filter(s => s.id !== selectedSession.id));
     setLoading(false);
   };
 
@@ -133,6 +151,35 @@ export default function RecordPage() {
                 rows={3}
                 style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none',resize:'none',boxSizing:'border-box'}}
               />
+            </div>
+
+            <div style={{background:'white',borderRadius:'14px',padding:'1.2rem',marginBottom:'1rem'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <p style={{fontSize:'0.75rem',color:'#8a8a9a'}}>体組成（任意）</p>
+                <button onClick={()=>setShowMeasurement(!showMeasurement)}
+                  style={{background:'none',border:'none',color:'#b8975a',fontSize:'0.8rem',fontWeight:'700',cursor:'pointer'}}>
+                  {showMeasurement ? '閉じる' : '＋ 入力する'}
+                </button>
+              </div>
+              {showMeasurement && (
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0.8rem',marginTop:'0.8rem'}}>
+                  <div>
+                    <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>体重 (kg)</p>
+                    <input type="number" placeholder="58.5" value={weight} onChange={e=>setWeight(e.target.value)}
+                      style={{width:'100%',padding:'0.7rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}}/>
+                  </div>
+                  <div>
+                    <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>体脂肪率 (%)</p>
+                    <input type="number" placeholder="22.3" value={bodyFat} onChange={e=>setBodyFat(e.target.value)}
+                      style={{width:'100%',padding:'0.7rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}}/>
+                  </div>
+                  <div>
+                    <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>体水分量 (%)</p>
+                    <input type="number" placeholder="55.0" value={waterContent} onChange={e=>setWaterContent(e.target.value)}
+                      style={{width:'100%',padding:'0.7rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}}/>
+                  </div>
+                </div>
+              )}
             </div>
 
             <button onClick={handleSave} disabled={loading}

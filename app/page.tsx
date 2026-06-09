@@ -18,7 +18,7 @@ export default function Home() {
       setMessage('ログインに失敗しました');
     } else {
       setLoggedIn(true);
-      setIsTrainer(email.includes('trainer') || email.includes('art'));
+      setIsTrainer(email.includes('trainer') || email.includes('art.'));
     }
     setLoading(false);
   };
@@ -69,6 +69,10 @@ export default function Home() {
           </button>
         </div>
         {message&&<p style={{marginTop:'1rem',textAlign:'center',color:'#e74c3c',fontSize:'0.82rem'}}>{message}</p>}
+        <p style={{marginTop:'1.5rem',textAlign:'center',fontSize:'0.8rem',color:'rgba(255,255,255,0.4)'}}>
+          はじめての方は
+          <a href="/register" style={{color:'#b8975a',marginLeft:'0.3rem'}}>新規会員登録</a>
+        </p>
       </div>
     </main>
   );

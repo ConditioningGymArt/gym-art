@@ -7,12 +7,12 @@ type Session = {
   start_time: string;
   end_time: string;
   status: string;
-  session_type: string;
 };
 
 export default function MyPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState<string|null>(null);
 
   const DAYS = ['日','月','火','水','木','金','土'];
 
@@ -30,6 +30,19 @@ export default function MyPage() {
     };
     fetchData();
   }, []);
+
+  const handleCancel = async (id: string) => {
+    if (!confirm('この予約をキャンセルしますか？')) return;
+    setCancelling(id);
+    const { error } = await supabase
+      .from('sessions')
+      .update({ status: 'cancelled' })
+      .eq('id', id);
+    if (!error) {
+      setSessions(prev => prev.filter(s => s.id !== id));
+    }
+    setCancelling(null);
+  };
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -69,7 +82,13 @@ export default function MyPage() {
                         <div style={{fontWeight:'700',color:'#0d1f3c',fontSize:'0.95rem'}}>{formatDate(s.start_time)}</div>
                         <div style={{color:'#8a8a9a',fontSize:'0.82rem',marginTop:'0.2rem'}}>{formatTime(s.start_time)} 〜 {formatTime(s.end_time)}</div>
                       </div>
-                      <span style={{background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.3rem 0.8rem',borderRadius:'100px',fontSize:'0.72rem',fontWeight:'700'}}>確定</span>
+                      <button
+                        onClick={() => handleCancel(s.id)}
+                        disabled={cancelling === s.id}
+                        style={{background:'rgba(192,57,43,0.08)',color:'#c0392b',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',fontWeight:'700',cursor:'pointer'}}
+                      >
+                        {cancelling === s.id ? '処理中...' : 'キャンセル'}
+                      </button>
                     </div>
                   </div>
                 ))}

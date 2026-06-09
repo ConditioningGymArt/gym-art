@@ -8,6 +8,11 @@ export default function TrainerPage() {
   const [selectedDate,setSelectedDate]=useState(new Date());
   const [sessions,setSessions]=useState<Session[]>([]);
   const [loading,setLoading]=useState(false);
+  const [closedDays,setClosedDays]=useState<string[]>([]);
+  const [showClosedModal,setShowClosedModal]=useState(false);
+  const [closedInput,setClosedInput]=useState('');
+  const [closedReason,setClosedReason]=useState('');
+
   const fetchSessions=async(date:Date)=>{
     setLoading(true);
     const start=new Date(date);start.setHours(0,0,0,0);
@@ -16,10 +21,18 @@ export default function TrainerPage() {
     setSessions(data||[]);
     setLoading(false);
   };
-  useEffect(()=>{fetchSessions(selectedDate);},[selectedDate]);
+
+  const fetchClosedDays=async()=>{
+    const{data}=await supabase.from('closed_days').select('closed_date');
+    setClosedDays((data||[]).map(d=>d.closed_date));
+  };
+
+  useEffect(()=>{fetchSessions(selectedDate);fetchClosedDays();},[selectedDate]);
+
   const changeDate=(diff:number)=>{
     const d=new Date(selectedDate);d.setDate(d.getDate()+diff);setSelectedDate(d);
   };
+
   const addSlot=async(timeStr:string)=>{
     const start=new Date(selectedDate);
     const[h,m]=timeStr.split(':');start.setHours(Number(h),Number(m),0,0);
@@ -27,24 +40,40 @@ export default function TrainerPage() {
     await supabase.from('sessions').insert({start_time:start.toISOString(),end_time:end.toISOString(),status:'available',session_type:'conditioning'});
     fetchSessions(selectedDate);
   };
+
+  const addClosedDay=async()=>{
+    if(!closedInput)return;
+    await supabase.from('closed_days').insert({closed_date:closedInput,reason:closedReason});
+    setClosedDays(prev=>[...prev,closedInput]);
+    setClosedInput('');setClosedReason('');setShowClosedModal(false);
+  };
+
+  const removeClosedDay=async(date:string)=>{
+    await supabase.from('closed_days').delete().eq('closed_date',date);
+    setClosedDays(prev=>prev.filter(d=>d!==date));
+  };
+
+  const todayDateStr=`${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+  const isClosed=closedDays.includes(todayDateStr);
+
   const bookedCount=sessions.filter(s=>s.status==='booked').length;
   const availableCount=sessions.filter(s=>s.status==='available').length;
-  const totalCount=SLOTS.length;
-  const getSession=(timeStr:string)=>{
-    return sessions.find(s=>{
-      const t=new Date(s.start_time);
-      return t.getHours()===Number(timeStr.split(':')[0])&&t.getMinutes()===Number(timeStr.split(':')[1]);
-    });
-  };
+
+  const getSession=(timeStr:string)=>sessions.find(s=>{
+    const t=new Date(s.start_time);
+    return t.getHours()===Number(timeStr.split(':')[0])&&t.getMinutes()===Number(timeStr.split(':')[1]);
+  });
+
   return(
     <main style={{minHeight:'100vh',background:'#f2f2f0'}}>
       <div style={{background:'#0d1f3c',padding:'1.2rem 1.5rem'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <a href="/" style={{color:'rgba(255,255,255,0.6)',fontSize:'0.8rem',textDecoration:'none'}}>← ホーム</a>
           <span style={{fontFamily:'serif',fontSize:'1.1rem',color:'white'}}>Gym <span style={{color:'#b8975a',fontWeight:'700'}}>ART</span></span>
-          <span style={{color:'rgba(255,255,255,0.6)',fontSize:'0.8rem'}}>管理</span>
+          <button onClick={()=>setShowClosedModal(true)} style={{background:'rgba(255,255,255,0.1)',border:'none',color:'white',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>休業日設定</button>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'1rem',marginTop:'1rem'}}>
-          {[{label:'本日予約',value:bookedCount,color:'#b8975a'},{label:'空き枠',value:availableCount,color:'white'},{label:'総枠数/日',value:totalCount,color:'white'}].map(item=>(
+          {[{label:'本日予約',value:bookedCount,color:'#b8975a'},{label:'空き枠',value:availableCount,color:'white'},{label:'総枠数/日',value:SLOTS.length,color:'white'}].map(item=>(
             <div key={item.label} style={{textAlign:'center'}}>
               <div style={{fontSize:'1.8rem',fontWeight:'700',color:item.color}}>{item.value}</div>
               <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.5)',marginTop:'0.2rem'}}>{item.label}</div>
@@ -52,16 +81,26 @@ export default function TrainerPage() {
           ))}
         </div>
       </div>
+
       <div style={{background:'white',padding:'0.8rem 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #f2f2f0'}}>
         <button onClick={()=>changeDate(-1)} style={{background:'none',border:'none',fontSize:'1.2rem',cursor:'pointer',color:'#0d1f3c'}}>‹</button>
-        <span style={{fontWeight:'700',color:'#0d1f3c',fontSize:'0.95rem'}}>
-          {selectedDate.getFullYear()}年{selectedDate.getMonth()+1}月{selectedDate.getDate()}日（{DAYS[selectedDate.getDay()]}）
-        </span>
+        <div style={{textAlign:'center'}}>
+          <span style={{fontWeight:'700',color:'#0d1f3c',fontSize:'0.95rem'}}>{selectedDate.getFullYear()}年{selectedDate.getMonth()+1}月{selectedDate.getDate()}日（{DAYS[selectedDate.getDay()]}）</span>
+          {isClosed&&<div style={{fontSize:'0.72rem',color:'#c0392b',fontWeight:'700'}}>🔴 休業日</div>}
+        </div>
         <button onClick={()=>changeDate(1)} style={{background:'none',border:'none',fontSize:'1.2rem',cursor:'pointer',color:'#0d1f3c'}}>›</button>
       </div>
+
+      {isClosed&&(
+        <div style={{background:'rgba(192,57,43,0.08)',padding:'1rem 1.5rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span style={{color:'#c0392b',fontSize:'0.85rem',fontWeight:'600'}}>この日は休業日に設定されています</span>
+          <button onClick={()=>removeClosedDay(todayDateStr)} style={{background:'#c0392b',color:'white',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>解除する</button>
+        </div>
+      )}
+
       <div style={{maxWidth:'600px',margin:'0 auto',padding:'1rem'}}>
         {loading&&<p style={{textAlign:'center',color:'#8a8a9a',padding:'2rem'}}>読み込み中...</p>}
-        {SLOTS.map(timeStr=>{
+        {!isClosed&&SLOTS.map(timeStr=>{
           const session=getSession(timeStr);
           const endH=String(Math.floor((Number(timeStr.split(':')[0])*60+Number(timeStr.split(':')[1])+50)/60)).padStart(2,'0');
           const endM=String((Number(timeStr.split(':')[1])+50)%60).padStart(2,'0');
@@ -76,7 +115,7 @@ export default function TrainerPage() {
                   {session.status==='booked'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
-                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>木</div>
+                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>会</div>
                         <div>
                           <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>予約済み</div>
                           <div style={{fontSize:'0.72rem',color:'#8a8a9a'}}>{session.session_type}</div>
@@ -101,6 +140,30 @@ export default function TrainerPage() {
           );
         })}
       </div>
+
+      {showClosedModal&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}}>
+          <div style={{background:'white',borderRadius:'16px',padding:'2rem',width:'90%',maxWidth:'400px'}}>
+            <h3 style={{color:'#0d1f3c',marginBottom:'1.2rem',fontSize:'1rem'}}>休業日を追加</h3>
+            <div style={{display:'flex',flexDirection:'column',gap:'0.8rem'}}>
+              <div>
+                <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>日付</p>
+                <input type="date" value={closedInput} onChange={e=>setClosedInput(e.target.value)}
+                  style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none'}}/>
+              </div>
+              <div>
+                <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>理由（任意）</p>
+                <input type="text" placeholder="例：研修のため" value={closedReason} onChange={e=>setClosedReason(e.target.value)}
+                  style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none'}}/>
+              </div>
+              <div style={{display:'flex',gap:'0.8rem',marginTop:'0.5rem'}}>
+                <button onClick={()=>setShowClosedModal(false)} style={{flex:1,padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',background:'white',cursor:'pointer',fontSize:'0.9rem'}}>キャンセル</button>
+                <button onClick={addClosedDay} style={{flex:1,padding:'0.8rem',borderRadius:'8px',border:'none',background:'#0d1f3c',color:'white',cursor:'pointer',fontSize:'0.9rem',fontWeight:'700'}}>追加する</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

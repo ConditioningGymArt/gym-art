@@ -15,13 +15,13 @@ const SLOTS=[
   {start:'19:00',end:'19:50'},
 ];
 const DAYS=['日','月','火','水','木','金','土'];
-
-const toMinutes=(timeStr:string)=>Number(timeStr.split(':')[0])*60+Number(timeStr.split(':')[1]);
+const toMinutes=(t:string)=>Number(t.split(':')[0])*60+Number(t.split(':')[1]);
 
 export default function BookingPage() {
   const [selectedDate,setSelectedDate]=useState<Date|null>(null);
   const [selectedSlot,setSelectedSlot]=useState<{start:string,end:string}|null>(null);
   const [bookedSlots,setBookedSlots]=useState<{start:string,end:string}[]>([]);
+  const [closedDays,setClosedDays]=useState<string[]>([]);
   const [message,setMessage]=useState('');
   const [loading,setLoading]=useState(false);
   const today=new Date();
@@ -30,6 +30,14 @@ export default function BookingPage() {
   const firstDay=new Date(currentYear,currentMonth,1).getDay();
   const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
 
+  useEffect(()=>{
+    const fetchClosed=async()=>{
+      const{data}=await supabase.from('closed_days').select('closed_date');
+      setClosedDays((data||[]).map(d=>d.closed_date));
+    };
+    fetchClosed();
+  },[]);
+
   const fetchBookedSlots=async(date:Date)=>{
     const start=new Date(date);start.setHours(0,0,0,0);
     const end=new Date(date);end.setHours(23,59,59,999);
@@ -37,36 +45,26 @@ export default function BookingPage() {
     setBookedSlots((data||[]).map(s=>{
       const sd=new Date(s.start_time);
       const ed=new Date(s.end_time);
-      return {
-        start:`${String(sd.getHours()).padStart(2,'0')}:${String(sd.getMinutes()).padStart(2,'0')}`,
-        end:`${String(ed.getHours()).padStart(2,'0')}:${String(ed.getMinutes()).padStart(2,'0')}`,
-      };
+      return{start:`${String(sd.getHours()).padStart(2,'0')}:${String(sd.getMinutes()).padStart(2,'0')}`,end:`${String(ed.getHours()).padStart(2,'0')}:${String(ed.getMinutes()).padStart(2,'0')}`};
     }));
   };
 
-  useEffect(()=>{
-    if(selectedDate) fetchBookedSlots(selectedDate);
-  },[selectedDate]);
+  useEffect(()=>{if(selectedDate)fetchBookedSlots(selectedDate);},[selectedDate]);
 
   const isConflict=(slot:{start:string,end:string})=>{
-    const slotStart=toMinutes(slot.start);
-    const slotEnd=toMinutes(slot.end);
-    return bookedSlots.some(b=>{
-      const bStart=toMinutes(b.start);
-      const bEnd=toMinutes(b.end);
-      return slotStart < bEnd && slotEnd > bStart;
-    });
+    const s=toMinutes(slot.start),e=toMinutes(slot.end);
+    return bookedSlots.some(b=>s<toMinutes(b.end)&&e>toMinutes(b.start));
   };
+
+  const toDateStr=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 
   const handleBook=async()=>{
     if(!selectedDate||!selectedSlot){setMessage('日付と時間を選んでください');return;}
     setLoading(true);
     const start=new Date(selectedDate);
-    const[h,m]=selectedSlot.start.split(':');
-    start.setHours(Number(h),Number(m),0,0);
+    const[h,m]=selectedSlot.start.split(':');start.setHours(Number(h),Number(m),0,0);
     const end=new Date(selectedDate);
-    const[eh,em]=selectedSlot.end.split(':');
-    end.setHours(Number(eh),Number(em),0,0);
+    const[eh,em]=selectedSlot.end.split(':');end.setHours(Number(eh),Number(em),0,0);
     const{error}=await supabase.from('sessions').insert({start_time:start.toISOString(),end_time:end.toISOString(),status:'booked',session_type:'conditioning',booked_at:new Date().toISOString()});
     if(error){setMessage('予約に失敗しました: '+error.message);}else{setMessage('予約完了しました！');setSelectedDate(null);setSelectedSlot(null);setBookedSlots([]);}
     setLoading(false);
@@ -96,8 +94,13 @@ export default function BookingPage() {
               const isToday=date.toDateString()===today.toDateString();
               const isSelected=selectedDate?.toDateString()===date.toDateString();
               const isPast=date<new Date(today.getFullYear(),today.getMonth(),today.getDate());
-              return(<button key={day} onClick={()=>!isPast&&setSelectedDate(date)} style={{border:'none',borderRadius:'50%',width:'36px',height:'36px',margin:'2px auto',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',cursor:isPast?'default':'pointer',background:isSelected?'#0d1f3c':isToday?'rgba(184,151,90,0.2)':'none',color:isSelected?'white':isPast?'#ccc':'#0d1f3c',fontWeight:isToday||isSelected?'700':'400'}}>{day}</button>);
+              const isClosed=closedDays.includes(toDateStr(date));
+              const disabled=isPast||isClosed;
+              return(<button key={day} onClick={()=>!disabled&&setSelectedDate(date)} style={{border:'none',borderRadius:'50%',width:'36px',height:'36px',margin:'2px auto',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',cursor:disabled?'default':'pointer',background:isSelected?'#0d1f3c':isToday?'rgba(184,151,90,0.2)':'none',color:isSelected?'white':disabled?'#ccc':'#0d1f3c',fontWeight:isToday||isSelected?'700':'400',textDecoration:isClosed?'line-through':'none'}}>{day}</button>);
             })}
+          </div>
+          <div style={{display:'flex',gap:'1rem',marginTop:'0.8rem',fontSize:'0.68rem',color:'#8a8a9a'}}>
+            <span>― 休業日</span>
           </div>
         </div>
         {selectedDate&&(

@@ -14,6 +14,8 @@ export default function RecordPage() {
   const [waterContent,setWaterContent]=useState('');
   const [muscleMass,setMuscleMass]=useState('');
   const [showMeasurement,setShowMeasurement]=useState(false);
+  const [photo,setPhoto]=useState<File|null>(null);
+  const [photoPreview,setPhotoPreview]=useState<string|null>(null);
   const [loading,setLoading]=useState(false);
   const [message,setMessage]=useState('');
   const DAYS=['日','月','火','水','木','金','土'];
@@ -35,18 +37,32 @@ export default function RecordPage() {
   const formatTime=(s:string)=>{const d=fmt(s);return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
   const formatDate=(s:string)=>{const d=fmt(s);return`${d.getMonth()+1}月${d.getDate()}日（${DAYS[d.getDay()]}）`;};
   const getName=(id:string|null)=>id?userMap[id]||'会員':'会員';
+  const handlePhoto=(e:React.ChangeEvent<HTMLInputElement>)=>{
+    const file=e.target.files?.[0];
+    if(file){setPhoto(file);setPhotoPreview(URL.createObjectURL(file));}
+  };
   const handleSave=async()=>{
     if(!selectedSession){setMessage('セッションを選んでください');return;}
     if(!content){setMessage('実施内容を入力してください');return;}
     setLoading(true);
-    const{error}=await supabase.from('conditioning_scores').insert({session_id:selectedSession.id,member_id:selectedSession.member_id,trainer_comment:content,recorded_at:new Date().toISOString()});
+    let photoUrl=null;
+    if(photo&&selectedSession.member_id){
+      const ext=photo.name.split('.').pop();
+      const path=`${selectedSession.member_id}/${Date.now()}.${ext}`;
+      const{data:uploadData}=await supabase.storage.from('member-photos').upload(path,photo);
+      if(uploadData){
+        const{data:urlData}=supabase.storage.from('member-photos').getPublicUrl(path);
+        photoUrl=urlData.publicUrl;
+      }
+    }
+    const{error}=await supabase.from('conditioning_scores').insert({session_id:selectedSession.id,member_id:selectedSession.member_id,trainer_comment:content,photo_url:photoUrl,recorded_at:new Date().toISOString()});
     if(error){setMessage('保存に失敗しました: '+error.message);setLoading(false);return;}
     if(weight||bodyFat||waterContent||muscleMass){
       await supabase.from('body_measurements').insert({member_id:selectedSession.member_id,weight:weight?Number(weight):null,body_fat:bodyFat?Number(bodyFat):null,water_content:waterContent?Number(waterContent):null,muscle_mass:muscleMass?Number(muscleMass):null,measured_at:new Date().toISOString()});
     }
     await supabase.from('sessions').update({status:'completed',notes:homeExercise}).eq('id',selectedSession.id);
     setMessage('記録を保存しました！');
-    setSelectedSession(null);setContent('');setHomeExercise('');setWeight('');setBodyFat('');setWaterContent('');setMuscleMass('');setShowMeasurement(false);
+    setSelectedSession(null);setContent('');setHomeExercise('');setWeight('');setBodyFat('');setWaterContent('');setMuscleMass('');setShowMeasurement(false);setPhoto(null);setPhotoPreview(null);
     setSessions(prev=>prev.filter(s=>s.id!==selectedSession.id));
     setLoading(false);
   };
@@ -84,6 +100,14 @@ export default function RecordPage() {
                   <div><p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>筋肉量 (kg)</p><input type="number" placeholder="42.0" value={muscleMass} onChange={e=>setMuscleMass(e.target.value)} style={{width:'100%',padding:'0.7rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none',boxSizing:'border-box'}}/></div>
                 </div>
               )}
+            </div>
+            <div style={{background:'white',borderRadius:'14px',padding:'1.2rem',marginBottom:'1rem'}}>
+              <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.8rem'}}>写真（任意）</p>
+              {photoPreview&&<img src={photoPreview} alt="preview" style={{width:'100%',borderRadius:'8px',marginBottom:'0.8rem',maxHeight:'200px',objectFit:'cover'}}/>}
+              <label style={{display:'block',padding:'0.8rem',borderRadius:'8px',border:'1px dashed #d0d0d0',textAlign:'center',cursor:'pointer',color:'#8a8a9a',fontSize:'0.85rem'}}>
+                📷 {photo?photo.name:'写真を選択'}
+                <input type="file" accept="image/*" onChange={handlePhoto} style={{display:'none'}}/>
+              </label>
             </div>
             <button onClick={handleSave} disabled={loading} style={{width:'100%',padding:'1rem',borderRadius:'12px',border:'none',cursor:'pointer',background:'#b8975a',color:'white',fontWeight:'700',fontSize:'1rem'}}>{loading?'保存中...':'記録を保存する'}</button>
           </div>

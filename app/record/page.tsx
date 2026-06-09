@@ -15,7 +15,7 @@ export default function RecordPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [userMap, setUserMap] = useState<UserMap>({});
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-  const [comment, setComment] = useState('');
+  const [content, setContent] = useState('');
   const [homeExercise, setHomeExercise] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -61,12 +61,12 @@ export default function RecordPage() {
 
   const handleSave = async () => {
     if (!selectedSession) { setMessage('セッションを選んでください'); return; }
-    if (!comment) { setMessage('コメントを入力してください'); return; }
+    if (!content) { setMessage('実施内容を入力してください'); return; }
     setLoading(true);
     const { error } = await supabase.from('conditioning_scores').insert({
       session_id: selectedSession.id,
       member_id: selectedSession.member_id,
-      trainer_comment: comment,
+      trainer_comment: content,
       recorded_at: new Date().toISOString(),
     });
     if (error) {
@@ -75,7 +75,7 @@ export default function RecordPage() {
       await supabase.from('sessions').update({ status: 'completed', notes: homeExercise }).eq('id', selectedSession.id);
       setMessage('記録を保存しました！');
       setSelectedSession(null);
-      setComment('');
+      setContent('');
       setHomeExercise('');
       setSessions(prev => prev.filter(s => s.id !== selectedSession.id));
     }
@@ -114,11 +114,11 @@ export default function RecordPage() {
         {selectedSession && (
           <div style={{marginTop:'1.5rem'}}>
             <div style={{background:'white',borderRadius:'14px',padding:'1.2rem',marginBottom:'1rem'}}>
-              <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.5rem'}}>トレーナーコメント <span style={{color:'#c0392b'}}>*</span></p>
+              <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.5rem'}}>実施内容 <span style={{color:'#c0392b'}}>*</span></p>
               <textarea
-                placeholder="本日のセッション内容・気づいたことなど"
-                value={comment}
-                onChange={e => setComment(e.target.value)}
+                placeholder="本日実施したトレーニング内容を入力してください"
+                value={content}
+                onChange={e => setContent(e.target.value)}
                 rows={4}
                 style={{width:'100%',padding:'0.8rem',borderRadius:'8px',border:'1px solid #e0e0e0',fontSize:'0.9rem',outline:'none',resize:'none',boxSizing:'border-box'}}
               />
@@ -127,7 +127,7 @@ export default function RecordPage() {
             <div style={{background:'white',borderRadius:'14px',padding:'1.2rem',marginBottom:'1rem'}}>
               <p style={{fontSize:'0.75rem',color:'#8a8a9a',marginBottom:'0.5rem'}}>ホームエクササイズ（任意）</p>
               <textarea
-                placeholder="例：ドローイン 10回×3セット、スクワット 15回×2セット"
+                placeholder="例：ドローイン 10回×3セット"
                 value={homeExercise}
                 onChange={e => setHomeExercise(e.target.value)}
                 rows={3}

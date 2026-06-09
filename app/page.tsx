@@ -36,6 +36,9 @@ export default function Home() {
           <a href="/booking" style={{display:'block',background:'#b8975a',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem'}}>
             📅 予約する
           </a>
+          <a href="/mypage" style={{display:'block',background:'white',color:'#0d1f3c',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem',border:'1px solid #e0e0e0'}}>
+            📋 予約履歴
+          </a>
           {isTrainer && (
             <a href="/trainer" style={{display:'block',background:'#0d1f3c',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem'}}>
               🏋️ 管理画面

@@ -1,11 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 const DAYS=['日','月','火','水','木','金','土'];
 const SLOTS=['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00'];
 type Session={id:string;start_time:string;end_time:string;status:string;session_type:string;member_id:string|null;};
 type UserMap={[key:string]:string};
 export default function TrainerPage() {
+  const router = useRouter();
   const [selectedDate,setSelectedDate]=useState(new Date());
   const [sessions,setSessions]=useState<Session[]>([]);
   const [loading,setLoading]=useState(false);
@@ -85,7 +87,7 @@ export default function TrainerPage() {
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <a href="/" style={{color:'rgba(255,255,255,0.6)',fontSize:'0.8rem',textDecoration:'none'}}>← ホーム</a>
           <span style={{fontFamily:'serif',fontSize:'1.1rem',color:'white'}}>Gym <span style={{color:'#b8975a',fontWeight:'700'}}>ART</span></span>
-          <button onClick={()=>setShowClosedModal(true)} style={{background:'rgba(255,255,255,0.1)',border:'none',color:'white',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>休業日設定</button>
+          <button onClick={()=>router.push('/members')} style={{background:'rgba(255,255,255,0.1)',border:'none',color:'white',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer',marginRight:'0.5rem'}}>会員一覧</button><button onClick={()=>setShowClosedModal(true)} style={{background:'rgba(255,255,255,0.1)',border:'none',color:'white',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>休業日設定</button>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'1rem',marginTop:'1rem'}}>
           {[{label:'本日予約',value:bookedCount,color:'#b8975a'},{label:'空き枠',value:availableCount,color:'white'},{label:'総枠数/日',value:SLOTS.length,color:'white'}].map(item=>(

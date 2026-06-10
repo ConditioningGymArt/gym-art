@@ -15,6 +15,7 @@ type Record = {
   session_id: string;
   trainer_comment: string;
   recorded_at: string;
+  photo_url: string | null;
 };
 
 type Measurement = {

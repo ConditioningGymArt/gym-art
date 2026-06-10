@@ -24,7 +24,7 @@ export default function RecordPage() {
       const today=new Date();
       const start=new Date(today);start.setHours(0,0,0,0);
       const end=new Date(today);end.setHours(23,59,59,999);
-      const{data:sd}=await supabase.from('sessions').select('*').eq('status','booked').gte('start_time',start.toISOString()).lte('start_time',end.toISOString()).order('start_time');
+      const{data:sd}=await supabase.from('sessions').select('*').in('status',['booked','completed']).gte('start_time',start.toISOString()).lte('start_time',end.toISOString()).order('start_time');
       setSessions(sd||[]);
       const{data:ud}=await supabase.from('users').select('id,full_name,email');
       const map:UserMap={};
@@ -41,6 +41,17 @@ export default function RecordPage() {
     const file=e.target.files?.[0];
     if(file){setPhoto(file);setPhotoPreview(URL.createObjectURL(file));}
   };
+  const handleSelectSession=async(session:Session)=>{
+    setSelectedSession(session);
+    const{data:existing}=await supabase.from('conditioning_scores').select('*').eq('session_id',session.id).single();
+    if(existing){
+      setContent(existing.trainer_comment||'');
+      setHomeExercise('');
+      if(existing.photo_url)setPhotoPreview(existing.photo_url);
+    } else {
+      setContent('');setHomeExercise('');setPhotoPreview(null);setPhoto(null);
+    }
+  };
   const handleSave=async()=>{
     if(!selectedSession){setMessage('セッションを選んでください');return;}
     if(!content){setMessage('実施内容を入力してください');return;}
@@ -55,7 +66,7 @@ export default function RecordPage() {
         photoUrl=urlData.publicUrl;
       }
     }
-    const{error}=await supabase.from('conditioning_scores').insert({session_id:selectedSession.id,member_id:selectedSession.member_id,trainer_comment:content,photo_url:photoUrl,recorded_at:new Date().toISOString()});
+    const{error}=await supabase.from('conditioning_scores').upsert({session_id:selectedSession.id,member_id:selectedSession.member_id,trainer_comment:content,photo_url:photoUrl,recorded_at:new Date().toISOString()});
     if(error){setMessage('保存に失敗しました: '+error.message);setLoading(false);return;}
     if(weight||bodyFat||waterContent||muscleMass){
       await supabase.from('body_measurements').insert({member_id:selectedSession.member_id,weight:weight?Number(weight):null,body_fat:bodyFat?Number(bodyFat):null,water_content:waterContent?Number(waterContent):null,muscle_mass:muscleMass?Number(muscleMass):null,measured_at:new Date().toISOString()});
@@ -76,7 +87,7 @@ export default function RecordPage() {
       <div style={{maxWidth:'480px',margin:'0 auto',padding:'1.5rem'}}>
         <p style={{fontSize:'0.75rem',letterSpacing:'0.15em',color:'#8a8a9a',marginBottom:'0.8rem'}}>本日のセッション</p>
         {sessions.length===0&&(<div style={{background:'white',borderRadius:'14px',padding:'2rem',textAlign:'center'}}><div style={{fontSize:'2rem',marginBottom:'0.5rem'}}>📋</div><div style={{color:'#8a8a9a',fontSize:'0.85rem'}}>本日の予約はありません</div></div>)}
-        {sessions.map(s=>(<button key={s.id} onClick={()=>{setSelectedSession(s);setMessage('');}} style={{width:'100%',background:selectedSession?.id===s.id?'#0d1f3c':'white',borderRadius:'14px',padding:'1rem 1.2rem',marginBottom:'0.8rem',border:selectedSession?.id===s.id?'none':'1px solid #e0e0e0',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',textAlign:'left'}}><div><div style={{fontWeight:'700',color:selectedSession?.id===s.id?'white':'#0d1f3c',fontSize:'0.95rem'}}>{getName(s.member_id)}</div><div style={{color:selectedSession?.id===s.id?'rgba(255,255,255,0.6)':'#8a8a9a',fontSize:'0.82rem',marginTop:'0.2rem'}}>{formatDate(s.start_time)} {formatTime(s.start_time)}〜</div></div>{selectedSession?.id===s.id&&<span style={{color:'#b8975a',fontSize:'1.2rem'}}>✓</span>}</button>))}
+        {sessions.map(s=>(<button key={s.id} onClick={()=>handleSelectSession(s)} style={{width:'100%',background:selectedSession?.id===s.id?'#0d1f3c':'white',borderRadius:'14px',padding:'1rem 1.2rem',marginBottom:'0.8rem',border:selectedSession?.id===s.id?'none':'1px solid #e0e0e0',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',textAlign:'left'}}><div><div style={{fontWeight:'700',color:selectedSession?.id===s.id?'white':'#0d1f3c',fontSize:'0.95rem'}}>{getName(s.member_id)}</div><div style={{color:selectedSession?.id===s.id?'rgba(255,255,255,0.6)':'#8a8a9a',fontSize:'0.82rem',marginTop:'0.2rem'}}>{formatDate(s.start_time)} {formatTime(s.start_time)}〜</div></div>{selectedSession?.id===s.id&&<span style={{color:'#b8975a',fontSize:'1.2rem'}}>✓</span>}</button>))}
         {selectedSession&&(
           <div style={{marginTop:'1.5rem'}}>
             <div style={{background:'white',borderRadius:'14px',padding:'1.2rem',marginBottom:'1rem'}}>

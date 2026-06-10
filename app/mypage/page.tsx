@@ -171,7 +171,13 @@ export default function MyPage() {
                     <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.3rem'}}>実施内容</p>
                     <p style={{fontSize:'0.9rem',color:'#0d1f3c',lineHeight:'1.6'}}>{r.trainer_comment}</p>
                   </div>
-                  {session?.notes && (
+                  {r.photo_url && (
+              <div style={{marginTop:'0.8rem'}}>
+                <p style={{fontSize:'0.72rem',color:'#8a8a9a',marginBottom:'0.4rem'}}>📷 セッション写真</p>
+                <img src={r.photo_url} alt='セッション写真' style={{width:'100%',borderRadius:'10px',objectFit:'cover',maxHeight:'260px'}} />
+              </div>
+            )}
+            {session?.notes && (
                     <div style={{background:'rgba(184,151,90,0.08)',borderRadius:'8px',padding:'0.8rem',marginTop:'0.5rem'}}>
                       <p style={{fontSize:'0.72rem',color:'#b8975a',fontWeight:'700',marginBottom:'0.3rem'}}>🏠 ホームエクササイズ</p>
                       <p style={{fontSize:'0.85rem',color:'#0d1f3c',lineHeight:'1.6'}}>{session.notes}</p>

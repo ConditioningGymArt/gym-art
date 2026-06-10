@@ -125,7 +125,7 @@ export default function TrainerPage() {
                 <div style={{fontSize:'0.68rem',color:'#8a8a9a'}}>{endH}:{endM}</div>
               </div>
               {session?(
-                <div onClick={session.status==='completed'?()=>router.push('/record'):undefined} style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:session.status==='booked'?'white':session.status==='completed'?'rgba(58,158,111,0.06)':'rgba(184,151,90,0.08)',border:session.status==='booked'?'none':session.status==='completed'?'1px solid rgba(58,158,111,0.2)':'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:session.status==='completed'?'pointer':'default'}}>
+                <div onClick={()=>{if(session.status==='completed')router.push('/record');}} style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:session.status==='booked'?'white':session.status==='completed'?'rgba(58,158,111,0.06)':'rgba(184,151,90,0.08)',border:session.status==='booked'?'none':session.status==='completed'?'1px solid rgba(58,158,111,0.2)':'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:session.status==='completed'?'pointer':'default'}}>
                   {session.status==='booked'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>

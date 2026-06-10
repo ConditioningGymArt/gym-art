@@ -136,13 +136,13 @@ export default function TrainerPage() {
                       </div>
                       <a href="/record" style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
                     </>
-                  ):session.status==='completed'?(<button onClick={()=>router.push(`/record?session=${session.id}`)} style={{background:'none',border:'none',cursor:'pointer',padding:0,width:'100%'}}>
+                  ):session.status==='completed'?(<div onClick={()=>router.push('/record')} style={{cursor:'pointer'}}>
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
                         <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#3a9e6f',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
                         <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
                       </div>
-                      <span style={{fontSize:'0.68rem',background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.2rem 0.6rem',borderRadius:'100px',fontWeight:'700'}}>記録済み</span></button>
+                      <span style={{fontSize:'0.68rem',background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.2rem 0.6rem',borderRadius:'100px',fontWeight:'700'}}>記録済み ✏️</span></div>
                     </>
                   ):(
                     <>

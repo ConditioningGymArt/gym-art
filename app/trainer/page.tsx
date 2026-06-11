@@ -125,7 +125,7 @@ export default function TrainerPage() {
                 <div style={{fontSize:'0.68rem',color:'#8a8a9a'}}>{endH}:{endM}</div>
               </div>
               {session?(
-                <div onClick={()=>{if(session.status==='completed')router.push('/record');}} style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:session.status==='booked'?'white':session.status==='completed'?'rgba(58,158,111,0.06)':'rgba(184,151,90,0.08)',border:session.status==='booked'?'none':session.status==='completed'?'1px solid rgba(58,158,111,0.2)':'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:session.status==='completed'?'pointer':'default'}}>
+                <div style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:session.status==='booked'?'white':session.status==='completed'?'rgba(58,158,111,0.06)':'rgba(184,151,90,0.08)',border:session.status==='booked'?'none':session.status==='completed'?'1px solid rgba(58,158,111,0.2)':'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:session.status==='completed'?'pointer':'default'}}>
                   {session.status==='booked'?(
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
@@ -136,7 +136,7 @@ export default function TrainerPage() {
                       </div>
                       <a href="/record" style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
                     </>
-                  ):session.status==='completed'?(<div onClick={()=>router.push('/record')} style={{cursor:'pointer'}}>
+                  ):session.status==='completed'?(<a href="/record" style={{display:'block',textDecoration:'none'}}>
                     <>
                       <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
                         <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#3a9e6f',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
@@ -150,7 +150,7 @@ export default function TrainerPage() {
                       <span style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700'}}>公開中</span>
                     </>
                   )}
-                </div>
+                </a>
               ):(
                 <button onClick={()=>addSlot(timeStr)} style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'none',border:'1px dashed #d0d0d0',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',color:'#8a8a9a',fontSize:'0.82rem'}}>
                   <span>空き枠なし</span>

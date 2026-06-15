@@ -125,31 +125,28 @@ export default function TrainerPage() {
                 <div style={{fontSize:'0.68rem',color:'#8a8a9a'}}>{endH}:{endM}</div>
               </div>
               {session?(
-session.status==='completed'?(<a href="/record" style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'rgba(58,158,111,0.06)',border:'1px solid rgba(58,158,111,0.2)',display:'flex',alignItems:'center',justifyContent:'space-between',textDecoration:'none',color:'inherit'}}>                  {session.status==='booked'?(
-                    <>
-                      <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
-                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
-                        <div>
-                          <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
-                        </div>/var/folders/ky/3xcy0qxj16v_5ycbp7p82tv00000gn/T/TemporaryItems/NSIRD_screencaptureui_VXNQLd/スクリーンショット 2026-06-11 17.29.40.png
-                      </div>
-                      <a href="/record" style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
-                    </>
-                  ):session.status==='completed'?(<a href="/record" style={{display:'block',textDecoration:'none',flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'rgba(58,158,111,0.06)',border:'1px solid rgba(58,158,111,0.2)',alignItems:'center',justifyContent:'space-between'}}>
-                    <>
-                      <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
-                        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#3a9e6f',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
-                        <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
-                      </div>
-                      <span style={{fontSize:'0.68rem',background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.2rem 0.6rem',borderRadius:'100px',fontWeight:'700'}}>記録済み ✏️</span></div>
-                    </>
-                  ):(
-                    <>
-                      <span style={{fontSize:'0.82rem',color:'#8a8a9a'}}>空き枠</span>
-                      <span style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700'}}>公開中</span>
-                    </>
-                  )}
-                </a>
+                session.status==='booked'?(
+                  <div style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'white',border:'none',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
+                      <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
+                      <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
+                    </div>
+                    <a href="/record" style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
+                  </div>
+                ):session.status==='completed'?(
+                  <a href="/record" style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'rgba(58,158,111,0.06)',border:'1px solid rgba(58,158,111,0.2)',display:'flex',alignItems:'center',justifyContent:'space-between',textDecoration:'none',color:'inherit'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'0.8rem'}}>
+                      <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#3a9e6f',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
+                      <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
+                    </div>
+                    <span style={{fontSize:'0.68rem',background:'rgba(58,158,111,0.1)',color:'#3a9e6f',padding:'0.2rem 0.6rem',borderRadius:'100px',fontWeight:'700'}}>記録済み ✏️</span>
+                  </a>
+                ):(
+                  <div style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'rgba(184,151,90,0.08)',border:'1px dashed rgba(184,151,90,0.4)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <span style={{fontSize:'0.82rem',color:'#8a8a9a'}}>空き枠</span>
+                    <span style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700'}}>公開中</span>
+                  </div>
+                )
               ):(
                 <button onClick={()=>addSlot(timeStr)} style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'none',border:'1px dashed #d0d0d0',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',color:'#8a8a9a',fontSize:'0.82rem'}}>
                   <span>空き枠なし</span>

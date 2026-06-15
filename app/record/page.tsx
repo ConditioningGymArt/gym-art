@@ -1,9 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 type Session={id:string;start_time:string;end_time:string;member_id:string|null;};
 type UserMap={[key:string]:string};
-export default function RecordPage() {
+function RecordPageInner() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('id');
   const [sessions,setSessions]=useState<Session[]>([]);
   const [userMap,setUserMap]=useState<UserMap>({});
   const [selectedSession,setSelectedSession]=useState<Session|null>(null);
@@ -24,7 +27,7 @@ export default function RecordPage() {
       const today=new Date();
       const start=new Date(today);start.setHours(0,0,0,0);
       const end=new Date(today);end.setHours(23,59,59,999);
-      const{data:sd}=await supabase.from('sessions').select('*').in('status',['booked','completed']).gte('start_time',start.toISOString()).lte('start_time',end.toISOString()).order('start_time');
+      const{data:sd}=sessionId?await supabase.from('sessions').select('*').eq('id',sessionId):await supabase.from('sessions').select('*').in('status',['booked','completed']).gte('start_time',start.toISOString()).lte('start_time',end.toISOString()).order('start_time');
       setSessions(sd||[]);
       const{data:ud}=await supabase.from('users').select('id,full_name,email');
       const map:UserMap={};
@@ -127,4 +130,7 @@ export default function RecordPage() {
       </div>
     </main>
   );
+}
+export default function RecordPage() {
+  return <Suspense fallback={<div>読み込み中...</div>}><RecordPageInner /></Suspense>;
 }

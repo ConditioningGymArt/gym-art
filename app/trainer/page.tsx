@@ -131,7 +131,7 @@ export default function TrainerPage() {
                       <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#0d1f3c',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'0.75rem',fontWeight:'700'}}>{getInitial(getMemberName(session.member_id))}</div>
                       <div style={{fontSize:'0.85rem',fontWeight:'700',color:'#0d1f3c'}}>{getMemberName(session.member_id)}</div>
                     </div>
-                    <a href="/record" style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
+                    <a href={`/record?id=${session.id}`} style={{fontSize:'0.75rem',color:'#b8975a',fontWeight:'700',textDecoration:'none'}}>記録入力 →</a>
                   </div>
                 ):session.status==='completed'?(
                   <a href="/record" style={{flex:1,borderRadius:'12px',padding:'0.8rem 1rem',background:'rgba(58,158,111,0.06)',border:'1px solid rgba(58,158,111,0.2)',display:'flex',alignItems:'center',justifyContent:'space-between',textDecoration:'none',color:'inherit'}}>

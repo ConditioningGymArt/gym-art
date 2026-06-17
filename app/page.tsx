@@ -26,25 +26,24 @@ export default function Home() {
   if (loggedIn) {
     return (
       <main style={{minHeight:'100vh',background:'#f2f2f0'}}>
-        <div style={{background:'#0d1f3c',padding:'2rem 1.5rem',textAlign:'center'}}>
-          <div style={{fontFamily:'serif',fontSize:'1.8rem',color:'white',marginBottom:'0.3rem'}}>
-            Gym <span style={{color:'#b8975a',fontWeight:'700'}}>ART</span>
-          </div>
-          <div style={{color:'rgba(255,255,255,0.5)',fontSize:'0.8rem',letterSpacing:'0.2em'}}>CONDITIONING GYM</div>
+        <div style={{background:'#0d1f3c',padding:'1.5rem',textAlign:'center',paddingTop:'3rem',paddingBottom:'2rem'}}>
+          <div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.45)',letterSpacing:'0.25em',textTransform:'uppercase',marginBottom:'0.4rem'}}>Conditioning Gym</div>
+          <div style={{fontFamily:'Georgia,serif',fontSize:'2.8rem',color:'#b8975a',fontWeight:'400',letterSpacing:'0.12em'}}>Art</div>
+          <div style={{width:'40px',height:'1px',background:'rgba(184,151,90,0.4)',margin:'1rem auto 0'}}></div>
         </div>
-        <div style={{maxWidth:'400px',margin:'2rem auto',padding:'0 1.5rem',display:'flex',flexDirection:'column',gap:'1rem'}}>
-          <a href="/booking" style={{display:'block',background:'#b8975a',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem'}}>
+        <div style={{maxWidth:'400px',margin:'2rem auto',padding:'0 1.5rem',display:'flex',flexDirection:'column',gap:'0.9rem'}}>
+          <a href="/booking" style={{display:'block',background:'#b8975a',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'0.95rem',letterSpacing:'0.05em'}}>
             📅 予約する
           </a>
-          <a href="/mypage" style={{display:'block',background:'white',color:'#0d1f3c',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem',border:'1px solid #e0e0e0'}}>
-            📋 予約履歴
+          <a href="/mypage" style={{display:'block',background:'white',color:'#0d1f3c',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'0.95rem',border:'1px solid #e8e8e6',letterSpacing:'0.05em'}}>
+            📋 マイページ
           </a>
           {isTrainer && (
-            <a href="/trainer" style={{display:'block',background:'#0d1f3c',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'1rem'}}>
+            <a href="/trainer" style={{display:'block',background:'#0d1f3c',color:'white',padding:'1.2rem',borderRadius:'14px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'0.95rem',letterSpacing:'0.05em'}}>
               🏋️ 管理画面
             </a>
           )}
-          <button onClick={()=>{supabase.auth.signOut();setLoggedIn(false);}} style={{background:'none',border:'1px solid #d0d0d0',color:'#8a8a9a',padding:'0.8rem',borderRadius:'10px',cursor:'pointer',fontSize:'0.85rem'}}>
+          <button onClick={()=>{supabase.auth.signOut();setLoggedIn(false);}} style={{background:'none',border:'1px solid #d8d8d5',color:'#8a8a9a',padding:'0.8rem',borderRadius:'10px',cursor:'pointer',fontSize:'0.82rem',marginTop:'0.5rem'}}>
             ログアウト
           </button>
         </div>
@@ -53,29 +52,33 @@ export default function Home() {
   }
 
   return (
-    <main style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0d1f3c'}}>
-      <div style={{background:'rgba(255,255,255,0.05)',padding:'2.5rem',borderRadius:'20px',width:'100%',maxWidth:'360px',margin:'1rem'}}>
-        <div style={{textAlign:'center',marginBottom:'2rem'}}>
-          <div style={{fontFamily:'serif',fontSize:'2rem',color:'white',marginBottom:'0.3rem'}}>
-            Gym <span style={{color:'#b8975a',fontWeight:'700'}}>ART</span>
-          </div>
-          <div style={{color:'rgba(255,255,255,0.4)',fontSize:'0.72rem',letterSpacing:'0.25em'}}>MEMBER PORTAL</div>
+    <main style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#0d1f3c',padding:'1rem'}}>
+      <div style={{width:'100%',maxWidth:'360px',display:'flex',flexDirection:'column',alignItems:'center',gap:'2.5rem'}}>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:'0.62rem',color:'rgba(255,255,255,0.38)',letterSpacing:'0.28em',textTransform:'uppercase',marginBottom:'0.6rem'}}>Conditioning Gym</div>
+          <div style={{fontFamily:'Georgia,serif',fontSize:'3.2rem',color:'#b8975a',fontWeight:'400',letterSpacing:'0.14em',lineHeight:'1'}}>Art</div>
+          <div style={{width:'36px',height:'1px',background:'rgba(184,151,90,0.35)',margin:'1.2rem auto 0'}}></div>
         </div>
-        <div style={{display:'flex',flexDirection:'column',gap:'0.8rem'}}>
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:'0.9rem'}}>
           <input type="email" placeholder="メールアドレス" value={email} onChange={e=>setEmail(e.target.value)}
-            style={{padding:'0.9rem 1rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.07)',color:'white',fontSize:'0.9rem',outline:'none'}}/>
+            style={{padding:'1rem 1.1rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.07)',color:'white',fontSize:'0.9rem',outline:'none',letterSpacing:'0.03em'}}/>
           <input type="password" placeholder="パスワード" value={password} onChange={e=>setPassword(e.target.value)}
-            style={{padding:'0.9rem 1rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.07)',color:'white',fontSize:'0.9rem',outline:'none'}}/>
+            style={{padding:'1rem 1.1rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.07)',color:'white',fontSize:'0.9rem',outline:'none'}}/>
           <button onClick={handleLogin} disabled={loading}
-            style={{padding:'0.9rem',borderRadius:'10px',border:'none',background:'#b8975a',color:'white',fontWeight:'700',fontSize:'0.95rem',cursor:'pointer',marginTop:'0.4rem'}}>
+            style={{padding:'1rem',borderRadius:'10px',border:'none',background:'#b8975a',color:'#0d1f3c',fontWeight:'700',fontSize:'0.95rem',cursor:'pointer',marginTop:'0.3rem',letterSpacing:'0.1em'}}>
             {loading?'ログイン中...':'ログイン'}
           </button>
         </div>
-        {message&&<p style={{marginTop:'1rem',textAlign:'center',color:'#e74c3c',fontSize:'0.82rem'}}>{message}</p>}
-        <p style={{marginTop:'1.5rem',textAlign:'center',fontSize:'0.8rem',color:'rgba(255,255,255,0.4)'}}>
-          はじめての方は
-          <a href="/register" style={{color:'#b8975a',marginLeft:'0.3rem'}}>新規会員登録</a>
-        </p>
+        {message&&<p style={{textAlign:'center',color:'#e74c3c',fontSize:'0.82rem'}}>{message}</p>}
+        <div style={{textAlign:'center'}}>
+          <p style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.35)',marginBottom:'1rem'}}>
+            はじめての方は
+            <a href="/register" style={{color:'#b8975a',marginLeft:'0.4rem',textDecoration:'none'}}>新規会員登録</a>
+          </p>
+          <a href="/register" style={{display:'inline-block',padding:'0.8rem 1.8rem',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.15)',color:'rgba(255,255,255,0.6)',fontSize:'0.82rem',textDecoration:'none',letterSpacing:'0.05em'}}>
+            体験トレーニングを申し込む
+          </a>
+        </div>
       </div>
     </main>
   );

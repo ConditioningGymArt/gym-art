@@ -34,7 +34,6 @@ export default function Home() {
         <div style={{padding:'4rem 2rem 2.5rem',textAlign:'center'}}>
           <div style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.35)',letterSpacing:'0.3em',textTransform:'uppercase',marginBottom:'0.6rem',fontFamily:sans}}>Conditioning Gym</div>
           <div style={{fontFamily:serif,fontSize:'3.5rem',color:gold,letterSpacing:'0.14em',lineHeight:'1',fontWeight:'600'}}>Art</div>
-          <div style={{width:'24px',height:'1px',background:'rgba(201,169,110,0.3)',margin:'1.2rem auto 0'}}></div>
         </div>
         <div style={{maxWidth:'320px',margin:'0 auto',padding:'0 1.5rem 3rem',display:'flex',flexDirection:'column',gap:'0.7rem'}}>
           <a href="/booking" style={{display:'block',background:gold,color:navy,padding:'1rem',borderRadius:'10px',textAlign:'center',textDecoration:'none',fontWeight:'700',fontSize:'0.85rem',letterSpacing:'0.1em',fontFamily:sans}}>
@@ -62,7 +61,6 @@ export default function Home() {
         <div style={{textAlign:'center'}}>
           <div style={{fontSize:'0.58rem',color:'rgba(255,255,255,0.32)',letterSpacing:'0.3em',textTransform:'uppercase',marginBottom:'0.7rem',fontFamily:sans}}>Conditioning Gym</div>
           <div style={{fontFamily:serif,fontSize:'3.8rem',color:gold,letterSpacing:'0.16em',lineHeight:'1',fontWeight:'600'}}>Art</div>
-          <div style={{width:'24px',height:'1px',background:'rgba(201,169,110,0.28)',margin:'1.3rem auto 0'}}></div>
         </div>
         <div style={{width:'100%',display:'flex',flexDirection:'column',gap:'0.6rem'}}>
           <input

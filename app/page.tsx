@@ -36,8 +36,8 @@ export default function Home() {
           <div style={{background:'rgba(255,255,255,0.05)',borderRadius:'14px',padding:'1.2rem'}}>
             <div style={{fontSize:'0.58rem',color:'rgba(255,255,255,0.38)',letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:'0.3rem',fontFamily:sans}}>Welcome back</div>
             <div style={{fontFamily:serif,fontSize:'1.6rem',color:'white',fontWeight:'300',marginBottom:'0.8rem'}}>会員 <span style={{color:gold}}>様</span></div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0.5rem'}}>
-              {[{n:'—',l:'通算回数'},{n:'—',l:'今月残り'},{n:'—',l:'継続日数'}].map(s=>(
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem'}}>
+              {[{n:'—',l:'今月残り'},{n:'—',l:'次回予約日'}].map(s=>(
                 <div key={s.l} style={{textAlign:'center'}}>
                   <div style={{fontFamily:serif,fontSize:'1.6rem',color:gold,fontWeight:'600',lineHeight:'1'}}>{s.n}</div>
                   <div style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.38)',marginTop:'0.2rem',letterSpacing:'0.06em',fontFamily:sans}}>{s.l}</div>

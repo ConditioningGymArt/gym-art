@@ -106,7 +106,7 @@ export default function BookingPage() {
             <p style={{fontSize:'0.8rem',color:'#8a8a9a',marginBottom:'0.8rem'}}>時間を選択</p>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem'}}>
               {SLOTS.map(s=>{
-                const conflict=isConflict(s);
+                const conflict=isConflict(s)||isPastSlot(s);
                 return(<button key={s.start} onClick={()=>!conflict&&setSelectedSlot(s)} disabled={conflict} style={{padding:'0.8rem',borderRadius:'10px',border:'none',cursor:conflict?'default':'pointer',fontSize:'0.85rem',fontWeight:'600',background:conflict?'#f2f2f0':selectedSlot?.start===s.start?'#0d1f3c':'#f2f2f0',color:conflict?'#ccc':selectedSlot?.start===s.start?'white':'#0d1f3c',textDecoration:conflict?'line-through':'none'}}>{s.start}〜{s.end}</button>);
               })}
             </div>

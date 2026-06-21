@@ -48,6 +48,14 @@ export default function BookingPage() {
     }));
   };
   useEffect(()=>{if(selectedDate)fetchBookedSlots(selectedDate);},[selectedDate]);
+  const isPastSlot=(slot:{start:string,end:string})=>{
+    const now=new Date();
+    if(selectedDate.toDateString()!==now.toDateString())return false;
+    const[h,m]=slot.start.split(':');
+    const slotTime=new Date(selectedDate);
+    slotTime.setHours(Number(h),Number(m),0,0);
+    return slotTime<now;
+  };
   const isConflict=(slot:{start:string,end:string})=>{
     const s=toMinutes(slot.start),e=toMinutes(slot.end);
     return bookedSlots.some(b=>s<toMinutes(b.end)&&e>toMinutes(b.start));

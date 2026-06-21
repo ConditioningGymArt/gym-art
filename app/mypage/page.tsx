@@ -87,6 +87,12 @@ export default function MyPage() {
   };
 
   const isPast = (dateStr: string) => new Date(dateStr) < new Date();
+  const canCancel = (startTime: string) => {
+    const sessionDate = new Date(startTime);
+    const cancelDeadline = new Date(sessionDate);
+    cancelDeadline.setHours(0, 0, 0, 0);
+    return new Date() < cancelDeadline;
+  };
   const upcomingSessions = sessions.filter(s => s.status==='booked' && !isPast(s.start_time));
   const pastSessions = sessions.filter(s => s.status==='booked' && isPast(s.start_time)).reverse();
 
@@ -119,10 +125,20 @@ export default function MyPage() {
                         <div style={{fontWeight:'700',color:'#0d1f3c',fontSize:'0.95rem'}}>{formatDate(s.start_time)}</div>
                         <div style={{color:'#8a8a9a',fontSize:'0.82rem',marginTop:'0.2rem'}}>{formatTime(s.start_time)} 〜 {formatTime(s.end_time)}</div>
                       </div>
-                      <button onClick={() => handleCancel(s.id)} disabled={cancelling === s.id}
-                        style={{background:'rgba(192,57,43,0.08)',color:'#c0392b',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',fontWeight:'700',cursor:'pointer'}}>
-                        {cancelling === s.id ? '処理中...' : 'キャンセル'}
-                      </button>
+                      {canCancel(s.start_time) ? (
+                        <button onClick={() => handleCancel(s.id)} disabled={cancelling === s.id}
+                          style={{background:'rgba(192,57,43,0.08)',color:'#c0392b',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',fontWeight:'700',cursor:'pointer'}}>
+                          {cancelling === s.id ? '処理中...' : 'キャンセル'}
+                        </button>
+                      ) : (
+                        <div style={{textAlign:'right'}}>
+                          <button disabled
+                            style={{background:'#f2f2f0',color:'#b0b0b8',border:'none',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',fontWeight:'700',cursor:'not-allowed'}}>
+                            キャンセル不可
+                          </button>
+                          <div style={{fontSize:'0.62rem',color:'#b0b0b8',marginTop:'0.3rem'}}>前日0時を過ぎました</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
